@@ -1,19 +1,15 @@
-let http = require("http");
-http.createServer(function (request, response) {
-   response.writeHead(200, {'Content-Type': 'text/plain'});
-   response.end('Ciao!\n');
-}).listen(80);
-
 const express = require("express");
-const app = express();
 const bodyParser = require('body-parser');
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({
-   extended: true
-}));
-
 const path = require('path');
+const http = require('http');
+
+const app = express();
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
 app.use("/", express.static(path.join(__dirname, "public")));
+
+let todos = [];
 
 app.post("/todo/add", (req, res) => {
     const todo = req.body.todo;
@@ -28,16 +24,12 @@ app.get("/todo", (req, res) => {
 
 app.put("/todo/complete", (req, res) => {
     const todo = req.body;
-    try {
-        todos = todos.map((element) => {
-            if (element.id === todo.id) {
-                element.completed = true;
-            }
-            return element;
-        });
-    } catch (e) {
-        console.log(e);
-    }
+    todos = todos.map((element) => {
+        if (element.id === todo.id) {
+            element.completed = true;
+        }
+        return element;
+    });
     res.json({ result: "Ok" });
 });
 
@@ -47,6 +39,6 @@ app.delete("/todo/:id", (req, res) => {
 });
 
 const server = http.createServer(app);
-server.listen(3000, () => {
-  console.log("- server running");
+server.listen(5500, () => {
+    console.log("- server running");
 });

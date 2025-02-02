@@ -4,98 +4,205 @@ const insertButton = document.getElementById("insertButton");
 const todoList = document.getElementById("todoList");
 
 const render = () => {
-    todoList.innerHTML = "";
+    let html = "";
     todos.forEach(todo => {
-        const li = document.createElement("li");
-        li.textContent = todo.name;
-        li.style.textDecoration = "line-through";
-        const completeButton = document.createElement("button");
-        completeButton.textContent = "Completa";
-        completeButton.onclick = () => completeTodo(todo);
-        li.appendChild(completeButton);
-
-        const deleteButton = document.createElement("button");
-        deleteButton.textContent = "Elimina";
-        deleteButton.onclick = () => deleteTodo(todo.id);
-        li.appendChild(deleteButton);
-
-        todoList.appendChild(li);
+        html += `<li>
+                    ${todo.name}
+                    <button class="complete-button" data-id="${todo.id}">Completa</button>
+                    <button class="delete-button" data-id="${todo.id}">Elimina</button>
+                 </li>`;
     });
+    todoList.innerHTML = html;
+
+    document.querySelectorAll(".complete-button").forEach(button => {
+
+        button.onclick = () => {
+
+            const id = button.getAttribute("data-id");
+
+            completeTodo({ id }).then(() => {
+
+                load().then((json) => {
+
+                    todos = json.todos;
+
+                    render();
+
+                });
+
+            });
+
+        };
+
+    });
+
+
+    document.querySelectorAll(".delete-button").forEach(button => {
+
+        button.onclick = () => {
+
+            const id = button.getAttribute("data-id");
+
+            deleteTodo(id).then(() => {
+
+                load().then((json) => {
+
+                    todos = json.todos;
+
+                    render();
+
+                });
+
+            });
+
+        };
+
+    });
+
 };
 
 const send = (todo) => {
+
     return new Promise((resolve, reject) => {
-        fetch("/todo/add", {
-            method: 'POST',
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(todo)
-        })
-        .then((response) => response.json())
-        .then((json) => {
-            resolve(json);
-        });
-    });
-};
-
-const load = () => {
+ 
+       fetch("/todo/add", {
+ 
+          method: 'POST',
+ 
+          headers: {
+ 
+             "Content-Type": "application/json"
+ 
+          },
+ 
+          body: JSON.stringify(todo)
+ 
+       })
+ 
+       .then((response) => response.json())
+ 
+       .then((json) => {
+ 
+          resolve(json); // risposta del server all'aggiunta
+ 
+       })
+ 
+    })
+ 
+ }
+ 
+ const load = () => {
+ 
     return new Promise((resolve, reject) => {
-        fetch("/todo")
-        .then((response) => response.json())
-        .then((json) => {
-            resolve(json);
-        });
-    });
-};
+ 
+       fetch("/todo")
+ 
+       .then((response) => response.json())
+ 
+       .then((json) => {
+ 
+          resolve(json); // risposta del server con la lista
+ 
+       })
+ 
+    })
+ 
+ }
 
-const completeTodo = (todo) => {
+ insertButton.onclick = () => {
+
+    const todo = {          
+ 
+       name: todoInput.value,
+ 
+       completed: false
+ 
+    }      
+ 
+    send({todo: todo}) // 1. invia la nuova Todo
+ 
+     .then(() => load()) // 2. caricala nuova lista
+ 
+     .then((json) => { 
+ 
+       todos = json.todos;
+ 
+       todoInput.value = "";
+ 
+       render();  // 3. render della nuova lista
+ 
+    });
+ 
+ }
+
+ const completeTodo = (todo) => {
+
     return new Promise((resolve, reject) => {
-        fetch("/todo/complete", {
-            method: 'PUT',
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(todo)
-        })
-        .then((response) => response.json())
-        .then((json) => {
-            resolve(json);
-        });
-    });
-};
+ 
+       fetch("/todo/complete", {
+ 
+          method: 'PUT',
+ 
+          headers: {
+ 
+             "Content-Type": "application/json"
+ 
+          },
+ 
+          body: JSON.stringify(todo)
+ 
+       })
+ 
+       .then((response) => response.json())
+ 
+       .then((json) => {
+ 
+          resolve(json);
+ 
+       })
+ 
+    })
+ 
+ }
 
-const deleteTodo = (id) => {
+ const deleteTodo = (id) => {
+
     return new Promise((resolve, reject) => {
-        fetch("/todo/" + id, {
-            method: 'DELETE',
-            headers: { "Content-Type": "application/json" }
-        })
-        .then((response) => response.json())
-        .then((json) => {
-            resolve(json);
-        });
-    });
-};
+ 
+       fetch("/todo/"+id, {
+ 
+          method: 'DELETE',
+ 
+          headers: {
+ 
+             "Content-Type": "application/json"
+ 
+          },
+ 
+       })
+ 
+       .then((response) => response.json())
+ 
+       .then((json) => {
+ 
+          resolve(json);
+ 
+       })
+ 
+    })
+ 
+ }
 
-insertButton.onclick = () => {
-    const todo = {
-        name: todoInput.value,
-        completed: false
-    };
-    send({ todo: todo })
-        .then(() => load())
-        .then((json) => {
-            todos = json.todos;
-            todoInput.value = "";
-            render();
-        });
-};
+ setInterval(() => {
 
-load().then((json) => {
-    todos = json.todos;
-    render();
-});
-
-setInterval(() => {
     load().then((json) => {
-        todos = json.todos;
-        render();
+ 
+       todos = json.todos;
+ 
+       todoInput.value = "";
+ 
+       render();
+ 
     });
-}, 30000);
+ 
+ }, 8000);
