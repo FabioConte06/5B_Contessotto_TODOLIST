@@ -1,208 +1,87 @@
 let todos = [];
-const todoInput = document.getElementById("todoInput");
-const insertButton = document.getElementById("insertButton");
-const todoList = document.getElementById("todoList");
 
 const render = () => {
-    let html = "";
-    todos.forEach(todo => {
-        html += `<li>
-                    ${todo.name}
-                    <button class="complete-button" data-id="${todo.id}">Completa</button>
-                    <button class="delete-button" data-id="${todo.id}">Elimina</button>
-                 </li>`;
-    });
-    todoList.innerHTML = html;
-
-    document.querySelectorAll(".complete-button").forEach(button => {
-
+   const todoList = document.getElementById("todoList");
+   todoList.innerHTML = "";
+   todos.forEach(todo => {
+       const li = `
+           <li class="todo-item ${todo.completed ? 'completed' : ''}">
+               <span>${todo.name}</span>
+               <div>
+                   <button class="complete-button" data-id="${todo.id}">Completa</button>
+                   <button class="delete-button" data-id="${todo.id}">Elimina</button>
+               </div>
+           </li>
+       `;
+       todoList.innerHTML += li;
+   });
+   const completeButtons = document.querySelectorAll('.complete-button');
+    completeButtons.forEach(button => {
         button.onclick = () => {
-
-            const id = button.getAttribute("data-id");
-
-            completeTodo({ id }).then(() => {
-
-                load().then((json) => {
-
-                    todos = json.todos;
-
-                    render();
-
-                });
-
-            });
-
+            const id = button.getAttribute('data-id');
+            completeTodo(id);
         };
-
     });
 
-
-    document.querySelectorAll(".delete-button").forEach(button => {
-
+    const deleteButtons = document.querySelectorAll('.delete-button');
+    deleteButtons.forEach(button => {
         button.onclick = () => {
-
-            const id = button.getAttribute("data-id");
-
-            deleteTodo(id).then(() => {
-
-                load().then((json) => {
-
-                    todos = json.todos;
-
-                    render();
-
-                });
-
-            });
-
+            const id = button.getAttribute('data-id');
+            deleteTodo(id);
         };
-
     });
-
 };
 
 const send = (todo) => {
+    return fetch("/todo/add", {
+        method: 'POST',
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ todo })
+    }).then(response => response.json());
+};
 
-    return new Promise((resolve, reject) => {
- 
-       fetch("/todo/add", {
- 
-          method: 'POST',
- 
-          headers: {
- 
-             "Content-Type": "application/json"
- 
-          },
- 
-          body: JSON.stringify(todo)
- 
-       })
- 
-       .then((response) => response.json())
- 
-       .then((json) => {
- 
-          resolve(json); // risposta del server all'aggiunta
- 
-       })
- 
-    })
- 
- }
- 
- const load = () => {
- 
-    return new Promise((resolve, reject) => {
- 
-       fetch("/todo")
- 
-       .then((response) => response.json())
- 
-       .then((json) => {
- 
-          resolve(json); // risposta del server con la lista
- 
-       })
- 
-    })
- 
- }
+const load = () => {
+    return fetch("/todo")
+        .then(response => response.json())
+        .then(json => {
+            todos = json.todos;
+            render();
+        });
+};
 
- insertButton.onclick = () => {
+const completeTodo = (id) => {
+    const todo = { id };
+    return fetch("/todo/complete", {
+        method: 'PUT',
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(todo)
+    }).then(() => load());
+};
 
-    const todo = {          
- 
-       name: todoInput.value,
- 
-       completed: false
- 
-    }      
- 
-    send({todo: todo}) // 1. invia la nuova Todo
- 
-     .then(() => load()) // 2. caricala nuova lista
- 
-     .then((json) => { 
- 
-       todos = json.todos;
- 
-       todoInput.value = "";
- 
-       render();  // 3. render della nuova lista
- 
+const deleteTodo = (id) => {
+    return fetch(`/todo/${id}`, {
+        method: 'DELETE'
+    }).then(() => load());
+};
+
+document.getElementById("insertButton").onclick = () => {
+    const todoInput = document.getElementById("todoInput");
+    const todo = {
+        name: todoInput.value,
+        completed: false
+    };
+    send(todo).then(() => {
+        todoInput.value = "";
+        load();
     });
- 
- }
+};
 
- const completeTodo = (todo) => {
+load();
 
-    return new Promise((resolve, reject) => {
- 
-       fetch("/todo/complete", {
- 
-          method: 'PUT',
- 
-          headers: {
- 
-             "Content-Type": "application/json"
- 
-          },
- 
-          body: JSON.stringify(todo)
- 
-       })
- 
-       .then((response) => response.json())
- 
-       .then((json) => {
- 
-          resolve(json);
- 
-       })
- 
-    })
- 
- }
-
- const deleteTodo = (id) => {
-
-    return new Promise((resolve, reject) => {
- 
-       fetch("/todo/"+id, {
- 
-          method: 'DELETE',
- 
-          headers: {
- 
-             "Content-Type": "application/json"
- 
-          },
- 
-       })
- 
-       .then((response) => response.json())
- 
-       .then((json) => {
- 
-          resolve(json);
- 
-       })
- 
-    })
- 
- }
-
- setInterval(() => {
-
-    load().then((json) => {
- 
-       todos = json.todos;
- 
-       todoInput.value = "";
- 
-       render();
- 
-    });
- 
- }, 8000);
+setInterval(() => {
+   load();
+}, 30000);

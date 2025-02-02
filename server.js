@@ -1,11 +1,13 @@
 const express = require("express");
-const bodyParser = require('body-parser');
-const path = require('path');
-const http = require('http');
+const bodyParser = require("body-parser");
+const path = require("path");
 
 const app = express();
+
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({
+   extended: true
+}));
 
 app.use("/", express.static(path.join(__dirname, "public")));
 
@@ -13,7 +15,7 @@ let todos = [];
 
 app.post("/todo/add", (req, res) => {
     const todo = req.body.todo;
-    todo.id = "" + new Date().getTime();
+    todo.id = Date.now().toString();
     todos.push(todo);
     res.json({ result: "Ok" });
 });
@@ -38,7 +40,6 @@ app.delete("/todo/:id", (req, res) => {
     res.json({ result: "Ok" });
 });
 
-const server = http.createServer(app);
-server.listen(5500, () => {
-    console.log("- server running");
+app.listen(80, () => {
+    console.log(`- server running`);
 });
