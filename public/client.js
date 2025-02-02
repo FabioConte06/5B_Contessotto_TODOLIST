@@ -5,11 +5,11 @@ const render = () => {
    todoList.innerHTML = "";
    todos.forEach(todo => {
        const li = `
-           <li class="todo-item ${todo.completed ? 'completed' : ''}">
+           <li class="${todo.completed ? 'completed' : ''}">
                <span>${todo.name}</span>
                <div>
-                   <button class="complete-button" data-id="${todo.id}">Completa</button>
-                   <button class="delete-button" data-id="${todo.id}">Elimina</button>
+                   <button class="complete-button" id="${todo.id}">Completa</button>
+                   <button class="delete-button" id="${todo.id}">Elimina</button>
                </div>
            </li>
        `;
@@ -18,7 +18,7 @@ const render = () => {
    const completeButtons = document.querySelectorAll('.complete-button');
     completeButtons.forEach(button => {
         button.onclick = () => {
-            const id = button.getAttribute('data-id');
+            const id = button.getAttribute('id');
             completeTodo(id);
         };
     });
@@ -26,7 +26,7 @@ const render = () => {
     const deleteButtons = document.querySelectorAll('.delete-button');
     deleteButtons.forEach(button => {
         button.onclick = () => {
-            const id = button.getAttribute('data-id');
+            const id = button.getAttribute('id');
             deleteTodo(id);
         };
     });
@@ -63,7 +63,7 @@ const completeTodo = (id) => {
 };
 
 const deleteTodo = (id) => {
-    return fetch(`/todo/${id}`, {
+    return fetch("/todo/"+id, {
         method: 'DELETE'
     }).then(() => load());
 };

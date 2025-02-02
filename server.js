@@ -1,3 +1,4 @@
+let http = require("http");
 const express = require("express");
 const bodyParser = require("body-parser");
 const path = require("path");
@@ -40,6 +41,8 @@ app.delete("/todo/:id", (req, res) => {
     res.json({ result: "Ok" });
 });
 
-app.listen(80, () => {
+const server = http.createServer(app);
+
+server.listen(80, () => {
     console.log(`- server running`);
 });
