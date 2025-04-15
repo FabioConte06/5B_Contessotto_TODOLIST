@@ -43,6 +43,6 @@ app.delete("/todo/:id", (req, res) => {
 
 const server = http.createServer(app);
 
-server.listen(80, () => {
+server.listen(5050, () => {
     console.log(`- server running`);
 });
